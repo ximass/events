@@ -1,9 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import UserLogin from '../components/UserLogin.vue';
 import Dashboard from '../components/Dashboard.vue';
+import UserRegister from '../components/UserRegister.vue';
 
 const routes = [
   { path: '/login', name: 'UserLogin', component: UserLogin },
+  { path: '/register', name: 'UserRegister', component: UserRegister },
   { path: '/dashboard', name: 'Dashboard', component: Dashboard, meta: { requiresAuth: true } },
 ];
 

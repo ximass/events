@@ -3,7 +3,7 @@
     <!-- Navbar -->
     <nav v-if="isAuthenticated" class="navbar">
       <div class="navbar-container">
-        <h1>Gerenciador de Eventos</h1>
+        <h1>Gerenciador de eventos</h1>
         <ul class="navbar-menu">
           <li>
             <router-link to="/dashboard">Dashboard</router-link>

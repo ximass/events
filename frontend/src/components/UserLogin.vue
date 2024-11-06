@@ -21,6 +21,9 @@
       <button type="submit" class="login-button">Login</button>
     </form>
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+    <p class="register-link">
+      Não tem uma conta? <router-link to="/register">Registre-se</router-link>
+    </p>
   </div>
 </template>
 
@@ -117,5 +120,20 @@ export default {
   margin-top: 10px;
   font-size: 14px;
   text-align: center;
+}
+
+.register-link {
+  margin-top: 10px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.register-link a {
+  color: #3498db;
+  text-decoration: none;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
 }
 </style>
