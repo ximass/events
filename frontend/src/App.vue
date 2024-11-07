@@ -26,16 +26,25 @@
 </template>
 
 <script>
+import { EventBus } from './eventBus';
+
 export default {
   name: 'App',
-  computed: {
-    isAuthenticated() {
-      return !!localStorage.getItem('authToken');
-    },
+  data() {
+    return {
+      isAuthenticated: !!localStorage.getItem('authToken'),
+    };
+  },
+  created() {
+    EventBus.on('authChanged', (status) => {
+      this.isAuthenticated = status;
+    });
   },
   methods: {
     logout() {
       localStorage.removeItem('authToken');
+      EventBus.emit('authChanged', false)
+      this.isAuthenticated = false;
       this.$router.push('/login');
     },
   },

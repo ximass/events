@@ -29,6 +29,7 @@
 
 <script>
 import axios from 'axios';
+import { EventBus } from '../eventBus';
 
 export default {
   name: 'UserLogin',
@@ -47,10 +48,9 @@ export default {
         const response = await axios.post('/api/login', this.form);
         const token = response.data.token;
 
-        // Armazena o token no localStorage
         localStorage.setItem('authToken', token);
+        EventBus.emit('authChanged', true);
 
-        // Redireciona o usuário após o login
         this.$router.push('/dashboard');
       } catch (error) {
         this.errorMessage = 'Credenciais inválidas';
