@@ -22,9 +22,17 @@
         <p>{{ event.description }}</p>
         <p><strong>Data:</strong> {{ formatDate(event.start_date) }} - {{ formatDate(event.end_date) }}</p>
         <p><strong>Local:</strong> {{ event.local }}</p>
-        <button @click="registerForEvent(event.id)" class="register-button">
-          Inscrever-se
-        </button>
+        
+        <div v-if="event.isRegistered">
+          <button @click="unregisterFromEvent(event.id)" class="unregister-button">
+            Cancelar inscrição
+          </button>
+        </div>
+        <div v-else>
+          <button @click="registerForEvent(event.id)" class="register-button">
+            Inscrever-se
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -45,55 +53,85 @@ export default {
   methods: {
     async fetchEvents() {
       try {
-        const response = await axios.get('/api/events');
-        this.events = response.data;
+        // Obter a lista de eventos
+        const eventsResponse = await axios.get('/api/events');
+        this.events = eventsResponse.data;
+
+        // Obter as inscrições do usuário
+        const registrationsResponse = await axios.get('/api/registrations', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          },
+        });
+        const userRegistrations = registrationsResponse.data;
+
+        // Marcar eventos inscritos
+        this.events = this.events.map((event) => ({
+          ...event,
+          isRegistered: userRegistrations.some(
+            (registration) => registration.event_id === event.id
+          ),
+        }));
+
+        // Inicializar os eventos filtrados
         this.filteredEvents = this.events;
       } catch (error) {
-        console.error('Erro ao carregar eventos:', error);
+        console.error('Erro ao buscar eventos ou inscrições:', error);
       }
     },
-
     filterEvents() {
-      if (this.searchTerm === '') {
-        this.filteredEvents = this.events;
-      } else {
-        const lowerSearchTerm = this.searchTerm.toLowerCase();
-        this.filteredEvents = this.events.filter(event =>
-          event.title.toLowerCase().includes(lowerSearchTerm)
-        );
-      }
+      this.filteredEvents = this.events.filter((event) =>
+        event.title.toLowerCase().includes(this.searchTerm.toLowerCase())
+      );
     },
-
+    formatDate(dateString) {
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString('pt-BR', options);
+    },
     async registerForEvent(eventId) {
       try {
-        const token = localStorage.getItem('authToken'); // Token armazenado após o login
-        const response = await axios.post(
+        await axios.post(
           `/api/events/${eventId}/register`,
           {},
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${localStorage.getItem('authToken')}`,
             },
           }
         );
-        alert('Inscrição realizada com sucesso!');
+        this.events = this.events.map((event) =>
+          event.id === eventId ? { ...event, isRegistered: true } : event
+        );
+        this.filterEvents();
       } catch (error) {
         console.error('Erro ao se inscrever no evento:', error);
-        alert('Erro ao realizar inscrição. Tente novamente.');
       }
     },
-
-    formatDate(date) {
-      const options = { year: 'numeric', month: 'long', day: 'numeric' };
-      return new Date(date).toLocaleDateString('pt-BR', options);
+    async unregisterFromEvent(eventId) {
+      try {
+        await axios.post(
+          `/api/events/${eventId}/unregister`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+            },
+          }
+        );
+        this.events = this.events.map((event) =>
+          event.id === eventId ? { ...event, isRegistered: false } : event
+        );
+        this.filterEvents();
+      } catch (error) {
+        console.error('Erro ao cancelar inscrição no evento:', error);
+      }
     },
   },
-  mounted() {
+  created() {
     this.fetchEvents();
   },
 };
 </script>
-
 <style scoped>
 
 .dashboard-container {
@@ -143,5 +181,20 @@ export default {
 
 .register-button:hover {
   background-color: #45a049;
+}
+
+.registered-label {
+  color: green;
+  font-weight: bold;
+}
+
+.unregister-button {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 </style>

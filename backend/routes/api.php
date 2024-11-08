@@ -23,6 +23,13 @@ Route::get('/events', function () {
     return Event::all();
 });
 
+Route::middleware('auth:sanctum')->get('/registrations', function (Request $request) {
+    $user = $request->user();
+    $registrations = $user->registrations()->with('event')->get();
+
+    return response()->json($registrations);
+});
+
 ## POST ##
 Route::post('/login', function (Request $request) {
     $credentials = $request->only('email', 'password');
@@ -43,6 +50,19 @@ Route::post('/login', function (Request $request) {
 
 Route::post('/register', [RegisterController::class, 'register']);
 
-//Route::post('/events/{id}/register', [EventController::class, 'register']);
+//Aqui o certo seria usar o EventController, mas para simplificar, vai ficar aqui mesmo essa porra
+Route::middleware('auth:sanctum')->post('events/{id}/unregister', function (Request $request) {
+    $event = Event::find($request->id);
+
+    if (!$event) {
+        return response()->json(['message' => 'Event not found'], 404);
+    }
+
+    $user = Auth::user();
+    $user->registrations()->delete();
+
+    return response()->json(['message' => 'Unregistered']);
+});
+
 Route::middleware('auth:sanctum')->post('/events/{id}/register', [EventController::class, 'register']);
 
