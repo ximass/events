@@ -10,6 +10,12 @@
         placeholder="Filtrar eventos por nome"
         @input="filterEvents"
       />
+
+      <select v-model="registrationFilter" @change="filterEvents">
+        <option value="all">Todos</option>
+        <option value="registered">Inscritos</option>
+        <option value="not_registered">Não Inscritos</option>
+      </select>
     </div>
     
     <!-- Lista de Eventos -->
@@ -48,6 +54,7 @@ export default {
       events: [],
       filteredEvents: [],
       searchTerm: '',
+      registrationFilter: 'all'
     };
   },
   methods: {
@@ -75,14 +82,27 @@ export default {
 
         // Inicializar os eventos filtrados
         this.filteredEvents = this.events;
+        this.filterEvents();
       } catch (error) {
         console.error('Erro ao buscar eventos ou inscrições:', error);
       }
     },
     filterEvents() {
-      this.filteredEvents = this.events.filter((event) =>
-        event.title.toLowerCase().includes(this.searchTerm.toLowerCase())
-      );
+      this.filteredEvents = this.events.filter((event) => {
+        const matchesSearchTerm = event.title
+          .toLowerCase()
+          .includes(this.searchTerm.toLowerCase());
+
+        let matchesRegistrationFilter = true;
+
+        if (this.registrationFilter === 'registered') {
+          matchesRegistrationFilter = event.isRegistered === true;
+        } else if (this.registrationFilter === 'not_registered') {
+          matchesRegistrationFilter = event.isRegistered === false;
+        }
+
+        return matchesSearchTerm && matchesRegistrationFilter;
+      });
     },
     formatDate(dateString) {
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -141,11 +161,19 @@ export default {
   }
   
   .filter-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin-bottom: 20px;
   }
-  
+
   .filter-container input {
-    width: 100%;
+    flex: 1;
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  .filter-container select {
     padding: 10px;
     font-size: 16px;
   }
