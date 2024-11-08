@@ -30,6 +30,14 @@ Route::middleware('auth:sanctum')->get('/registrations', function (Request $requ
     return response()->json($registrations);
 });
 
+Route::middleware('auth:sanctum')->get('/events-with-registrations', function () {
+    $events = Event::with('registrations.user')->get();
+
+    return response()->json($events);
+});
+
+Route::middleware('auth:sanctum')->get('/events-with-registrations-and-checkins', [EventController::class, 'getEventsWithRegistrationsAndCheckins']);
+
 ## POST ##
 Route::post('/login', function (Request $request) {
     $credentials = $request->only('email', 'password');
@@ -65,4 +73,6 @@ Route::middleware('auth:sanctum')->post('events/{id}/unregister', function (Requ
 });
 
 Route::middleware('auth:sanctum')->post('/events/{id}/register', [EventController::class, 'register']);
+
+Route::middleware('auth:sanctum')->post('/events/{event_id}/registrations/{registration_id}/checkin', [EventController::class, 'checkin']);
 

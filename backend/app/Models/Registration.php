@@ -25,4 +25,9 @@ class Registration extends Model
     {
         return $this->hasOne(Certificate::class);
     }
+
+    public function checkin()
+    {
+        return $this->hasOne(Checkin::class);
+    }
 }

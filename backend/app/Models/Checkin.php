@@ -11,6 +11,13 @@ class Checkin extends Model
 
     protected $fillable = ['registration_id', 'user_id', 'event_id', 'checkin_time'];
 
+    public $timestamps = false;
+
+    public function registration()
+    {
+        return $this->belongsTo(Registration::class);
+    }
+
     public function event()
     {
         return $this->belongsTo(Event::class);
