@@ -8,8 +8,8 @@
           <li>
             <router-link to="/dashboard">Dashboard</router-link>
           </li>
-          <li v-if="!isAuthenticated">
-            <router-link to="/login">Login</router-link>
+          <li>
+            <router-link to="/checkin">Checkin</router-link>
           </li>
           <li>
             <button @click="logout">Logout</button>

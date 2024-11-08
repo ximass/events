@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Database\Factories\EventFactory;
 
 class Event extends Model
 {
@@ -19,5 +20,10 @@ class Event extends Model
     public function checkins()
     {
         return $this->hasMany(Checkin::class);
+    }
+
+    protected static function newFactory()
+    {
+        return EventFactory::new();
     }
 }

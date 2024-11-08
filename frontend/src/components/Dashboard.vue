@@ -27,7 +27,6 @@
         <h3>{{ event.title }}</h3>
         <p>{{ event.description }}</p>
         <p><strong>Data:</strong> {{ formatDate(event.start_date) }} - {{ formatDate(event.end_date) }}</p>
-        <p><strong>Local:</strong> {{ event.local }}</p>
         
         <div v-if="event.isRegistered">
           <button @click="unregisterFromEvent(event.id)" class="unregister-button">
