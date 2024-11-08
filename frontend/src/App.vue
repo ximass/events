@@ -6,10 +6,13 @@
         <h1>Gerenciador de eventos</h1>
         <ul class="navbar-menu">
           <li>
-            <router-link to="/dashboard">Dashboard</router-link>
+            <router-link to="/dashboard">Listagem</router-link>
           </li>
           <li>
             <router-link to="/checkin">Checkin</router-link>
+          </li>
+          <li>
+            <router-link to="/profile">Perfil</router-link>
           </li>
           <li>
             <button @click="logout">Logout</button>

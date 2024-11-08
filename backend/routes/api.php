@@ -8,6 +8,7 @@ use App\Models\Event;
 
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\UserController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -76,3 +77,6 @@ Route::middleware('auth:sanctum')->post('/events/{id}/register', [EventControlle
 
 Route::middleware('auth:sanctum')->post('/events/{event_id}/registrations/{registration_id}/checkin', [EventController::class, 'checkin']);
 
+## PUT ##
+
+Route::middleware('auth:sanctum')->put('/user', [UserController::class, 'update']);
