@@ -38,7 +38,22 @@ class EventController extends Controller
         $registration->status = 'active';
         $registration->save();
 
-        return response()->json(['message' => 'Inscrição realizada com sucesso'], 201);
+        $data = [
+            'user' => $user->only(['name', 'email']),
+            'event' => $event->only(['title', 'start_date', 'end_date']),
+        ];
+    
+        try {
+            $response = Http::post('http://127.0.0.1:8081/api/registration/email', $data);
+    
+            if ($response->successful()) {
+                return response()->json(['message' => 'Inscrição realizada com sucesso e email enviado.'], 201);
+            } else {
+                return response()->json(['message' => 'Inscrição realizada, mas ocorreu um erro ao enviar o email.'], 201);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Inscrição realizada, mas ocorreu um erro ao enviar o email.'], 201);
+        }
     }
 
     public function checkin($event_id, $registration_id)
