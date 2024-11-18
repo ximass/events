@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
 use App\Models\Event;
+use App\Models\Checkin;
 
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\EventController;
@@ -35,6 +36,13 @@ Route::middleware('auth:sanctum')->get('/events-with-registrations', function ()
     $events = Event::with('registrations.user')->get();
 
     return response()->json($events);
+});
+
+Route::middleware('auth:sanctum')->get('/checkins', function () {
+    $user = Auth::user();
+    $checkins = Checkin::where('user_id', $user->id)->get();
+
+    return response()->json($checkins);
 });
 
 Route::middleware('auth:sanctum')->get('/events-with-registrations-and-checkins', [EventController::class, 'getEventsWithRegistrationsAndCheckins']);
@@ -76,6 +84,8 @@ Route::middleware('auth:sanctum')->post('events/{id}/unregister', function (Requ
 Route::middleware('auth:sanctum')->post('/events/{id}/register', [EventController::class, 'register']);
 
 Route::middleware('auth:sanctum')->post('/events/{event_id}/registrations/{registration_id}/checkin', [EventController::class, 'checkin']);
+
+Route::middleware('auth:sanctum')->post('/events/{event_id}/certificate', [EventController::class, 'generateCertificate']);
 
 ## PUT ##
 

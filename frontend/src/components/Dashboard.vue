@@ -27,10 +27,18 @@
         <h3>{{ event.title }}</h3>
         <p>{{ event.description }}</p>
         <p><strong>Data:</strong> {{ formatDate(event.start_date) }} - {{ formatDate(event.end_date) }}</p>
-        
+
         <div v-if="event.isRegistered">
+          <div v-if="event.isCheckedIn">
+            <button @click="generateCertificate(event.id)" class="certificate-button">
+              Gerar Certificado
+            </button>
+          </div>
+          <div v-else>
+            <p>Você precisa realizar o check-in para gerar o certificado.</p>
+          </div>
           <button @click="unregisterFromEvent(event.id)" class="unregister-button">
-            Cancelar inscrição
+            Cancelar Inscrição
           </button>
         </div>
         <div v-else>
@@ -59,11 +67,9 @@ export default {
   methods: {
     async fetchEvents() {
       try {
-        // Obter a lista de eventos
         const eventsResponse = await axios.get('/api/events');
-        this.events = eventsResponse.data;
+        const events = eventsResponse.data;
 
-        // Obter as inscrições do usuário
         const registrationsResponse = await axios.get('/api/registrations', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('authToken')}`,
@@ -71,16 +77,27 @@ export default {
         });
         const userRegistrations = registrationsResponse.data;
 
-        // Marcar eventos inscritos
-        this.events = this.events.map((event) => ({
-          ...event,
-          isRegistered: userRegistrations.some(
-            (registration) => registration.event_id === event.id
-          ),
-        }));
+        const checkinsResponse = await axios.get('/api/checkins', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          },
+        });
+        const userCheckins = checkinsResponse.data;
 
-        // Inicializar os eventos filtrados
-        this.filteredEvents = this.events;
+        this.events = events.map((event) => {
+          const isRegistered = userRegistrations.some(
+            (registration) => registration.event_id === event.id
+          );
+          const isCheckedIn = userCheckins.some(
+            (checkin) => checkin.event_id === event.id
+          );
+          return {
+            ...event,
+            isRegistered,
+            isCheckedIn,
+          };
+        });
+
         this.filterEvents();
       } catch (error) {
         console.error('Erro ao buscar eventos ou inscrições:', error);
@@ -145,6 +162,31 @@ export default {
         console.error('Erro ao cancelar inscrição no evento:', error);
       }
     },
+    async generateCertificate(eventId) {
+      try {
+        const response = await axios.post(
+          `/api/events/${eventId}/certificate`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+            },
+            responseType: 'blob',
+          }
+        );
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+
+        link.href = url;
+        link.setAttribute('download', `certificado_evento_${eventId}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error('Erro ao gerar o certificado:', error);
+      }
+    },
   },
   created() {
     this.fetchEvents();
@@ -196,32 +238,46 @@ export default {
     color: #777;
   }
 
-.register-button {
-  margin-top: 10px;
-  padding: 8px 12px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
+  .register-button {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
 
-.register-button:hover {
-  background-color: #45a049;
-}
+  .register-button:hover {
+    background-color: #45a049;
+  }
 
-.registered-label {
-  color: green;
-  font-weight: bold;
-}
+  .registered-label {
+    color: green;
+    font-weight: bold;
+  }
 
-.unregister-button {
-  margin-top: 10px;
-  padding: 8px 12px;
-  background-color: #f44336;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
+  .unregister-button {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .certificate-button {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .certificate-button:hover {
+    background-color: #45A049;
+  }
 </style>

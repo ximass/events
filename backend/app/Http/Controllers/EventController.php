@@ -7,6 +7,7 @@ use App\Models\Registration;
 use App\Models\Event;
 use App\Models\Checkin;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 class EventController extends Controller
 {
@@ -85,5 +86,49 @@ class EventController extends Controller
         });
 
         return response()->json($events);
+    }
+
+    public function generateCertificate($event_id)
+    {
+        $user = Auth::user();
+
+        $registration = Registration::where('user_id', $user->id)
+            ->where('event_id', $event_id)
+            ->first();
+
+        if (!$registration) {
+            return response()->json(['error' => 'Usuário não inscrito no evento'], 403);
+        }
+
+        $checkin = Checkin::where('registration_id', $registration->id)->first();
+
+        if (!$checkin) {
+            return response()->json(['error' => 'Check-in não realizado'], 403);
+        }
+
+        $event = Event::find($event_id);
+
+        $data = [
+            'user' => $user->only(['name', 'email']),
+            'event' => $event->only(['title', 'start_date', 'end_date']),
+        ];
+
+        try {
+            $response = Http::withHeaders([
+                'Accept' => 'application/pdf',
+            ])->post('http://127.0.0.1:8082/api/certificate', $data);
+
+            if ($response->successful()) {
+                $pdfContent = $response->body();
+
+                return response($pdfContent, 200)
+                    ->header('Content-Type', 'application/pdf')
+                    ->header('Content-Disposition', 'attachment; filename="certificado_evento_' . $event_id . '.pdf"');
+            } else {
+                return response()->json(['error' => 'Erro ao gerar o certificado'], $response->status());
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Erro ao comunicar com o servidor de certificados'], 500);
+        }
     }
 }
