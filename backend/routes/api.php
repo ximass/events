@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Auth;
 
 use App\Models\Event;
 use App\Models\Checkin;
+use App\Models\Registration;
+use App\Models\User;
 
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\EventController;
@@ -32,7 +34,7 @@ Route::middleware('auth:sanctum')->get('/registrations', function (Request $requ
     return response()->json($registrations);
 });
 
-Route::middleware('auth:sanctum')->get('/events-with-registrations', function () {
+Route::get('/events-with-registrations', function () {
     $events = Event::with('registrations.user')->get();
 
     return response()->json($events);
@@ -45,7 +47,7 @@ Route::middleware('auth:sanctum')->get('/checkins', function () {
     return response()->json($checkins);
 });
 
-Route::middleware('auth:sanctum')->get('/events-with-registrations-and-checkins', [EventController::class, 'getEventsWithRegistrationsAndCheckins']);
+Route::get('/events-with-registrations-and-checkins', [EventController::class, 'getEventsWithRegistrationsAndCheckins']);
 
 ## POST ##
 Route::post('/login', function (Request $request) {
@@ -86,6 +88,43 @@ Route::middleware('auth:sanctum')->post('/events/{id}/register', [EventControlle
 Route::middleware('auth:sanctum')->post('/events/{event_id}/registrations/{registration_id}/checkin', [EventController::class, 'checkin']);
 
 Route::middleware('auth:sanctum')->post('/events/{event_id}/certificate', [EventController::class, 'generateCertificate']);
+
+Route::post('/sync', function (Request $request) {
+    $users         = $request->users;
+    $registrations = $request->registrations;
+    $checkins      = $request->checkins;
+
+    foreach ($users ?? [] as $user) {
+        $user = User::updateOrCreate(['email' => $user['email']], $user);
+    }
+
+    foreach ($registrations ?? [] as $registration) {
+        $registration = Registration::updateOrCreate(
+            [
+                'event_id' => $registration['event_id'], 
+                'user_id'  => User::where('email', $registration['user_email'])->first()->id
+            ], 
+            $registration
+        );
+    }
+
+    foreach ($checkins ?? [] as $checkin) {
+        $user = User::where('email', $checkin['user_email'])->first();
+
+        $checkin['registration_id'] = Registration::where('user_id', $user->id)->where('event_id', $checkin['event_id'])->first()->id;
+
+        Checkin::updateOrCreate(
+            [
+                'registration_id' => $checkin['registration_id'],
+                'event_id'        => $checkin['event_id'],
+                'user_id'         => $user->id
+            ], 
+            $checkin
+        );
+    }
+
+    return response()->json(['message' => 'Data synchronized'], 201);
+});
 
 ## PUT ##
 
