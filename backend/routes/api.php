@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CertificateController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -134,6 +135,8 @@ Route::post('/sync', function (Request $request) {
 
     return response()->json(['message' => 'Data synchronized'], 201);
 });
+
+Route::post('/validate-certificate', [CertificateController::class, 'validateCertificate']);
 
 ## PUT ##
 

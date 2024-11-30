@@ -127,9 +127,18 @@ class EventController extends Controller
 
         $event = Event::find($event_id);
 
+        $certificateCode = CertificateController::generateCertificateCode();
+            
+        $certificate = Certificate::create([
+            'registration_id' => $registration->id,
+            'certificate_code' => $certificateCode,
+            'generated_at' => now()
+        ]);
+
         $data = [
             'user' => $user->only(['name', 'email']),
             'event' => $event->only(['title', 'start_date', 'end_date']),
+            'certificate_code' => $certificateCode
         ];
 
         try {
@@ -139,12 +148,6 @@ class EventController extends Controller
 
             if ($response->successful()) {
                 $pdfContent = $response->body();
-
-                $certificate = Certificate::create([
-                    'registration_id' => $registration->id,
-                    'certificate_code' => CertificateController::generateCertificateCode(),
-                    'generated_at' => now()
-                ]);
 
                 return response($pdfContent, 200)
                     ->header('Content-Type', 'application/pdf')

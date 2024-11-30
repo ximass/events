@@ -6,7 +6,10 @@
         <h1>Gerenciador de eventos</h1>
         <ul class="navbar-menu">
           <li>
-            <router-link to="/dashboard">Listagem</router-link>
+            <router-link to="/dashboard">Eventos</router-link>
+          </li>
+          <li>
+            <router-link to="/certificate-validation">Validação de certificados</router-link>
           </li>
           <li>
             <router-link to="/checkin" v-if="isAdmin">Checkin</router-link>
