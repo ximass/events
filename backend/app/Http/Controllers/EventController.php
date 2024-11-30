@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+
 use App\Models\Registration;
 use App\Models\Event;
 use App\Models\Checkin;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
+use App\Models\Certificate;
+
+use App\Http\Controllers\CertificateController;
 
 class EventController extends Controller
 {
@@ -135,6 +139,12 @@ class EventController extends Controller
 
             if ($response->successful()) {
                 $pdfContent = $response->body();
+
+                $certificate = Certificate::create([
+                    'registration_id' => $registration->id,
+                    'certificate_code' => CertificateController::generateCertificateCode(),
+                    'generated_at' => now()
+                ]);
 
                 return response($pdfContent, 200)
                     ->header('Content-Type', 'application/pdf')

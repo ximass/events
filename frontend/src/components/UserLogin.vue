@@ -47,8 +47,11 @@ export default {
       try {
         const response = await axios.post('/api/login', this.form);
         const token = response.data.token;
+        const user = response.data.user;
 
         localStorage.setItem('authToken', token);
+        localStorage.setItem('user', JSON.stringify(user));
+
         EventBus.emit('authChanged', true);
 
         this.$router.push('/dashboard');

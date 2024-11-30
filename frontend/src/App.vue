@@ -9,7 +9,7 @@
             <router-link to="/dashboard">Listagem</router-link>
           </li>
           <li>
-            <router-link to="/checkin">Checkin</router-link>
+            <router-link to="/checkin" v-if="isAdmin">Checkin</router-link>
           </li>
           <li>
             <router-link to="/profile">Perfil</router-link>
@@ -36,12 +36,19 @@ export default {
   data() {
     return {
       isAuthenticated: !!localStorage.getItem('authToken'),
+      isAdmin: false
     };
   },
   created() {
-    EventBus.on('authChanged', (status) => {
+    EventBus.on('authChanged', (status, isAdmin) => {
       this.isAuthenticated = status;
+      this.isAdmin = isAdmin;
     });
+
+    if (this.isAuthenticated) {
+      const user = JSON.parse(localStorage.getItem('user'));
+      this.isAdmin = user && user.is_admin;
+    }
   },
   methods: {
     logout() {

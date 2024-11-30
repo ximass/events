@@ -20,27 +20,32 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 ## GET ##
 
 Route::get('/user', function (Request $request) {
+    Log::info($request->method() . ' ' . $request->path());
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/events', function () {
+Route::get('/events', function (Request $request) {
+    Log::info($request->method() . ' ' . $request->path());
     return Event::all();
 });
 
 Route::middleware('auth:sanctum')->get('/registrations', function (Request $request) {
+    Log::info($request->method() . ' ' . $request->path());
     $user = $request->user();
     $registrations = $user->registrations()->with('event')->get();
 
     return response()->json($registrations);
 });
 
-Route::get('/events-with-registrations', function () {
+Route::get('/events-with-registrations', function (Request $request) {
+    Log::info($request->method() . ' ' . $request->path());
     $events = Event::with('registrations.user')->get();
 
     return response()->json($events);
 });
 
-Route::middleware('auth:sanctum')->get('/checkins', function () {
+Route::middleware('auth:sanctum')->get('/checkins', function (Request $request) {
+    Log::info($request->method() . ' ' . $request->path());
     $user = Auth::user();
     $checkins = Checkin::where('user_id', $user->id)->get();
 
@@ -51,6 +56,7 @@ Route::get('/events-with-registrations-and-checkins', [EventController::class, '
 
 ## POST ##
 Route::post('/login', function (Request $request) {
+    Log::info($request->method() . ' ' . $request->path());
     $credentials = $request->only('email', 'password');
 
     if (Auth::attempt($credentials, true)) {
@@ -71,6 +77,7 @@ Route::post('/register', [RegisterController::class, 'register']);
 
 //Aqui o certo seria usar o EventController, mas para simplificar, vai ficar aqui mesmo essa porra
 Route::middleware('auth:sanctum')->post('events/{id}/unregister', function (Request $request) {
+    Log::info($request->method() . ' ' . $request->path());
     $event = Event::find($request->id);
 
     if (!$event) {
@@ -90,6 +97,8 @@ Route::middleware('auth:sanctum')->post('/events/{event_id}/registrations/{regis
 Route::middleware('auth:sanctum')->post('/events/{event_id}/certificate', [EventController::class, 'generateCertificate']);
 
 Route::post('/sync', function (Request $request) {
+    Log::info($request->method() . ' ' . $request->path());
+
     $users         = $request->users;
     $registrations = $request->registrations;
     $checkins      = $request->checkins;

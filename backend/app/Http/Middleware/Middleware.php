@@ -15,6 +15,8 @@ class Middleware
      */
     public function handle(Request $request, Closure $next): Response
     {
+        Log::info($request->method() . ' ' . $request->path());
+        
         return $next($request)
             ->header('Access-Control-Allow-Origin', '*')
             ->header('Access-Control-Allow-Methods', '*')
