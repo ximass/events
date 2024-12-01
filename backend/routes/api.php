@@ -88,6 +88,16 @@ Route::middleware('auth:sanctum')->post('events/{id}/unregister', function (Requ
     $user = Auth::user();
     $user->registrations()->delete();
 
+    $data = [
+        'user' => $user->only(['name', 'email']),
+        'event' => $event->only(['title']),
+    ];
+
+    try {
+        Http::post('http://127.0.0.1:8081/api/unregistration/email', $data);
+    } catch (\Exception $e) {
+    }
+
     return response()->json(['message' => 'Unregistered']);
 });
 

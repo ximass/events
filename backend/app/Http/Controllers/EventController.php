@@ -10,6 +10,7 @@ use App\Models\Registration;
 use App\Models\Event;
 use App\Models\Checkin;
 use App\Models\Certificate;
+use App\Models\User;
 
 use App\Http\Controllers\CertificateController;
 
@@ -62,11 +63,6 @@ class EventController extends Controller
 
     public function checkin($event_id, $registration_id)
     {
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['error' => 'Usuário não autenticado'], 401);
-        }
-
         $event = Event::find($event_id);
         if (!$event) {
             return response()->json(['error' => 'Evento não encontrado'], 404);
@@ -76,6 +72,8 @@ class EventController extends Controller
         if (!$registration || $registration->event_id != $event_id) {
             return response()->json(['error' => 'Inscrição não encontrada para este evento'], 404);
         }
+
+        $user = User::find($registration->user_id);
 
         $existingCheckin = Checkin::where('registration_id', $registration_id)->first();
         if ($existingCheckin) {
@@ -89,7 +87,22 @@ class EventController extends Controller
         $checkin->checkin_time = now();
         $checkin->save();
 
-        return response()->json(['message' => 'Check-in realizado com sucesso'], 201);
+        $data = [
+            'user' => $user->only(['name', 'email']),
+            'event' => $event->only(['title', 'start_date', 'end_date']),
+        ];
+    
+        try {
+            $response = Http::post('http://127.0.0.1:8081/api/checkin/email', $data);
+    
+            if ($response->successful()) {
+                return response()->json(['message' => 'Check-in realizado com sucesso e email enviado.'], 201);
+            } else {
+                return response()->json(['message' => 'Check-in realizado, mas ocorreu um erro ao enviar o email.'], 201);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Check-in realizado, mas ocorreu um erro ao enviar o email.'], 201);
+        }
     }
 
     public function getEventsWithRegistrationsAndCheckins()
