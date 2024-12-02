@@ -9,7 +9,8 @@ cd mail-api -> npm install -> php artisan serve --port=8081
 cd documents-api -> npm install -> php artisan serve --port=8082
 
 #DESIGN
-![image](https://github.com/user-attachments/assets/ed834f64-7781-4400-9cc1-77a89daa10a4)
+![image](https://github.com/user-attachments/assets/0abafeb9-ca0e-4612-922f-02b96806921a)
+
 
 
 #ERD
